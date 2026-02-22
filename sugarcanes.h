@@ -15,4 +15,4 @@ struct Matrix {
 	int* values;
 };
 
-extern void sugarcanes(const int lenght, const int width);
+extern void sugarcanes(const int length, const int width);

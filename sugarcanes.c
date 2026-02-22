@@ -1,208 +1,173 @@
-#include"sugarcanes.h"
+#include "sugarcanes.h"
 
-void printMatrix(struct Matrix* matrix, int humidBlocks, int waterSource) {
-	for (int r = 0; r < matrix->rows; r++) {
-		for (int c = 0; c < matrix->cols; c++) {
-			printf("%d ", matrix->values[r * matrix->cols + c]);
-		}
-		printf("\n");
-	}
-
-	double dimension = matrix->cols * matrix->rows;
-	double dValueHumidBlocks = humidBlocks;
-	double percentage = dValueHumidBlocks / dimension * 100;
-
-	printf("La soluzione ottima prevede %d blocchi umidi su %.0f blocchi totali (%.2f%%)\n", humidBlocks, dimension, percentage);
-	printf("Specifically: %d blocchi umidi, %d fonti d'acqua, %.0f blocchi aridi", humidBlocks, waterSource, dimension - humidBlocks - waterSource);
+static inline bool in_bounds(const struct Matrix* m, int r, int c) {
+    return r >= 0 && r < m->rows && c >= 0 && c < m->cols;
 }
 
-int humidify(struct Matrix* matrix, int rSource, int cSource) {
-	int humidifiedBlock = 0;
-
-	int *blockAbove = &matrix->values[(rSource - 1) * matrix->cols + cSource];
-	int *blockBelow = &matrix->values[(rSource + 1) * matrix->cols + cSource];
-	int *blockLeft = &matrix->values[rSource * matrix->cols + cSource - 1];
-	int *blockRight = &matrix->values[rSource * matrix->cols + cSource + 1];
-
-	if (rSource > 0) {
-		if (*blockAbove == dry) {
-			*blockAbove = humid;
-			humidifiedBlock++;
-		}
-	}
-
-	if (rSource < matrix->rows - 1) {
-		if (*blockBelow == dry) {
-			*blockBelow = humid;
-			humidifiedBlock++;
-		}
-	}
-
-	if (cSource > 0) {
-		if (*blockLeft == dry) {
-			*blockLeft = humid;
-			humidifiedBlock++;
-		 }
-	}
-
-	if (cSource < matrix->cols - 1) {
-		if (*blockRight == dry) {
-			*blockRight = humid;
-			humidifiedBlock++;
-		}
-	}
-
-	return humidifiedBlock;
+static inline int idx_of(const struct Matrix* m, int r, int c) {
+    return r * m->cols + c;
 }
 
-bool shouldBeHumid(struct Matrix* matrix, int rSource, int cSource) {
+static void printMatrix(const struct Matrix* matrix, int humidBlocks, int waterSource) {
+    for (int r = 0; r < matrix->rows; r++) {
+        for (int c = 0; c < matrix->cols; c++) {
+            printf("%d ", matrix->values[r * matrix->cols + c]);
+        }
+        printf("\n");
+    }
 
-	if (rSource < 0 || rSource >= matrix->rows || cSource < 0 || cSource >= matrix->cols) {
-		return true;
-	}
+    double dimension = (double)matrix->cols * (double)matrix->rows;
+    double percentage = (dimension == 0.0) ? 0.0 : ((double)humidBlocks / dimension * 100.0);
 
-	int blockAbove = matrix->values[(rSource - 1) * matrix->cols + cSource];
-	int blockBelow = matrix->values[(rSource + 1) * matrix->cols + cSource];
-	int blockLeft = matrix->values[rSource * matrix->cols + cSource - 1];
-	int blockRight = matrix->values[rSource * matrix->cols + cSource + 1];
-
-	if (rSource > 0) {
-		if (blockAbove == water) {
-			return true;
-		}
-	}
-
-	if (rSource < matrix->rows - 1) {
-		if (blockBelow == water) {
-			return true;
-		}
-	}
-
-	if (cSource > 0) {
-		if (blockLeft == water) {
-			return true;
-		}
-	}
-
-	if (cSource < matrix->cols - 1) {
-		if (blockRight == water) {
-			return true;
-		}
-	}
-
-	return false;
+    printf("La soluzione ottima prevede %d blocchi umidi su %.0f blocchi totali (%.2f%%)\n",
+        humidBlocks, dimension, percentage);
+    printf("In particolare: %d blocchi umidi, %d fonti d'acqua, %.0f blocchi aridi\n",
+        humidBlocks, waterSource, dimension - humidBlocks - waterSource);
 }
 
-int drain(struct Matrix* matrix, int rSource, int cSource) {
-	int drainedBlocks = 0;
+static bool cell_should_be_humid(const struct Matrix* m, int r, int c) {
+    if (!in_bounds(m, r, c)) return false;
 
-	int *blockAbove = &matrix->values[(rSource - 1) * matrix->cols + cSource];
-	int *blockBelow = &matrix->values[(rSource + 1) * matrix->cols + cSource];
-	int *blockLeft = &matrix->values[rSource * matrix->cols + cSource - 1];
-	int *blockRight = &matrix->values[rSource * matrix->cols + cSource + 1];
+    const int v = m->values[idx_of(m, r, c)];
+    if (v == water) return false;
 
-	if (!shouldBeHumid(matrix, rSource - 1, cSource)) {
-		*blockAbove = dry;
-		drainedBlocks++;
-	}
+    if (in_bounds(m, r - 1, c) && m->values[idx_of(m, r - 1, c)] == water) return true;
+    if (in_bounds(m, r + 1, c) && m->values[idx_of(m, r + 1, c)] == water) return true;
+    if (in_bounds(m, r, c - 1) && m->values[idx_of(m, r, c - 1)] == water) return true;
+    if (in_bounds(m, r, c + 1) && m->values[idx_of(m, r, c + 1)] == water) return true;
 
-	if (!shouldBeHumid(matrix, rSource + 1, cSource)) {
-		*blockBelow = dry;
-		drainedBlocks++;
-	}
-
-	if (!shouldBeHumid(matrix, rSource, cSource-1)) {
-		*blockLeft = dry;
-		drainedBlocks++;
-	}
-
-	if (!shouldBeHumid(matrix, rSource, cSource+1)) {
-		*blockRight = dry;
-		drainedBlocks++;
-	}
-
-	return drainedBlocks;
+    return false;
 }
 
-void recursiveSugarCanes(struct Matrix* matrix, int humidBlocks, int waterSource, int* bestSolution, int* maxNumberHumidBlock, int* bestWaterSource, int row, int col) {
-	if (col >= matrix->cols) {
-		col -= matrix->cols;
-		row++;
-	}
-	
-	if (humidBlocks >= *maxNumberHumidBlock) {
-		if ((humidBlocks == *maxNumberHumidBlock && waterSource < *bestWaterSource) || humidBlocks > *maxNumberHumidBlock) {
-			*maxNumberHumidBlock = humidBlocks;
-			*bestWaterSource = waterSource;
-			memcpy(bestSolution, matrix->values, matrix->rows * matrix->cols * sizeof(int));
-		}
+static int recompute_cell(struct Matrix* m, int r, int c) {
+    if (!in_bounds(m, r, c)) return 0;
 
-	}
+    const int i = idx_of(m, r, c);
+    if (m->values[i] == water) return 0;
 
-	if (row >= matrix->rows) {
-		return;
-	}
+    const int before = m->values[i];
+    const int after = cell_should_be_humid(m, r, c) ? humid : dry;
 
-	if (humidBlocks < *maxNumberHumidBlock && waterSource >= *bestWaterSource) {
-		return;
-	}
+    if (before == after) return 0;
 
-	for (int r = row; r < matrix->rows; r++) {
-		for (int c = col; c < matrix->cols; c++) {
-			if (matrix->values[r * matrix->cols + c] == water || matrix->values[r * matrix->cols + c] == humid) {
-				continue;
-			}
-
-			//SET
-			matrix->values[r * matrix->cols + c] = water;
-			humidBlocks +=  humidify(matrix, r, c);
-			recursiveSugarCanes(matrix, humidBlocks, waterSource + 1, bestSolution, maxNumberHumidBlock, bestWaterSource, r, c + 2);
-
-			//RESET
-			matrix->values[r * matrix->cols + c] = dry;
-			humidBlocks -= drain(matrix, r, c);
-			recursiveSugarCanes(matrix, humidBlocks, waterSource, bestSolution, maxNumberHumidBlock, bestWaterSource, r, c + 1);
-		}
-	}
+    m->values[i] = after;
+    if (before == humid && after == dry) return -1;
+    if (before == dry && after == humid) return +1;
+    return 0;
 }
 
-void sugarcanes(const int lenght, const int width) {
-	if (lenght <= 0 || width <= 0) {
-		return;
-	}
+static void solve(
+    struct Matrix* m,
+    int pos,
+    int humidCount,
+    int waterCount,
+    int lockedDryCount, 
+    int* bestValues,
+    int* bestHumid,
+    int* bestWater
+) {
+    const int dim = m->rows * m->cols;
 
-	int dimension = lenght * width;	
-	struct Matrix* matrix = malloc(dimension * sizeof(struct Matrix));
-	if (!matrix) {
-		return;
-	}
+    // Calcolo dei blocchi aridi liberi (potenzialmente convertibili)
+    int remainingDry = dim - waterCount - lockedDryCount - humidCount;
 
-	matrix->rows = lenght;
-	matrix->cols = width;
-	matrix->values = calloc(dimension, sizeof(int));
-	if (!matrix->values) {
-		free(matrix);
-		return;
-	}
+    //almeno 1/5 dei blocchi aridi rimanenti dovrà essere sacrificato come acqua
+    int max_possible_humid = dim - waterCount - lockedDryCount - (remainingDry / 5);
 
-	int* bestSolution = calloc(dimension, sizeof(int));
-	if (!bestSolution) {
-		free(matrix->values);
-		free(matrix);
-		return;
-	}
+    if (max_possible_humid < *bestHumid) return;
+    if (max_possible_humid == *bestHumid && waterCount >= *bestWater) return;
 
-	int maxNumberHumidBlock = 0;
-	int bestWaterSource = dimension;
+    if (pos == dim) {
+        if (humidCount > *bestHumid || (humidCount == *bestHumid && waterCount < *bestWater)) {
+            *bestHumid = humidCount;
+            *bestWater = waterCount;
+            memcpy(bestValues, m->values, (size_t)dim * sizeof(int));
+        }
+        return;
+    }
 
-	recursiveSugarCanes(matrix, 0, 0, bestSolution, &maxNumberHumidBlock, &bestWaterSource, 0, 0);
+    const int r = pos / m->cols;
+    const int c = pos % m->cols;
 
-	memcpy(matrix->values, bestSolution, dimension * sizeof(int));
-	printMatrix(matrix, maxNumberHumidBlock, bestWaterSource);
+    // A) NESSUNA SORGENTE D'ACQUA
+    int newly_locked_dry_A = 0;
+    if (r > 0 && m->values[idx_of(m, r - 1, c)] == dry) newly_locked_dry_A++;
+    if (r == m->rows - 1 && c > 0 && m->values[idx_of(m, r, c - 1)] == dry) newly_locked_dry_A++;
+    if (r == m->rows - 1 && c == m->cols - 1 && m->values[pos] == dry) newly_locked_dry_A++;
 
-	free(bestSolution);
-	free(matrix->values);
-	free(matrix);
+    solve(m, pos + 1, humidCount, waterCount, lockedDryCount + newly_locked_dry_A, bestValues, bestHumid, bestWater);
 
-	return;
+    // B) PIAZZIAMO LA SORGENTE D'ACQUA
+    const int ar[5] = { r, r - 1, r + 1, r, r };
+    const int ac[5] = { c, c, c, c - 1, c + 1 };
+    int old[5];
+    for (int k = 0; k < 5; k++) {
+        if (in_bounds(m, ar[k], ac[k])) old[k] = m->values[idx_of(m, ar[k], ac[k])];
+        else old[k] = -1;
+    }
+
+    const int cell_i = idx_of(m, r, c);
+    if (m->values[cell_i] != water) {
+        int newHumid = humidCount;
+        int newWater = waterCount;
+
+        if (m->values[cell_i] == humid) newHumid -= 1;
+
+        m->values[cell_i] = water;
+        newWater += 1;
+
+        newHumid += recompute_cell(m, r - 1, c);
+        newHumid += recompute_cell(m, r + 1, c);
+        newHumid += recompute_cell(m, r, c - 1);
+        newHumid += recompute_cell(m, r, c + 1);
+
+        int newly_locked_dry_B = 0;
+        // Ricalcoliamo i blocchi permanentemente aridi in base al nuovo stato della griglia
+        if (r > 0 && m->values[idx_of(m, r - 1, c)] == dry) newly_locked_dry_B++;
+        if (r == m->rows - 1 && c > 0 && m->values[idx_of(m, r, c - 1)] == dry) newly_locked_dry_B++;
+
+        solve(m, pos + 1, newHumid, newWater, lockedDryCount + newly_locked_dry_B, bestValues, bestHumid, bestWater);
+    }
+
+    // UNDO
+    for (int k = 0; k < 5; k++) {
+        if (old[k] != -1) m->values[idx_of(m, ar[k], ac[k])] = old[k];
+    }
+}
+
+void sugarcanes(const int length, const int width) { 
+    if (length <= 0 || width <= 0) return;
+
+    const int dimension = length * width;
+
+    struct Matrix* matrix = (struct Matrix*)malloc(sizeof(struct Matrix));
+    if (!matrix) return;
+
+    matrix->rows = length;
+    matrix->cols = width;
+    matrix->values = (int*)calloc((size_t)dimension, sizeof(int));
+    if (!matrix->values) {
+        free(matrix);
+        return;
+    }
+
+    int* bestSolution = (int*)calloc((size_t)dimension, sizeof(int));
+    if (!bestSolution) {
+        free(matrix->values);
+        free(matrix);
+        return;
+    }
+
+    int bestHumid = 0;
+    int bestWater = dimension;
+
+    solve(matrix, 0, 0, 0, 0, bestSolution, &bestHumid, &bestWater);
+
+    memcpy(matrix->values, bestSolution, (size_t)dimension * sizeof(int));
+
+    printMatrix(matrix, bestHumid, bestWater);
+
+    free(bestSolution);
+    free(matrix->values);
+    free(matrix);
 }
