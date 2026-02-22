@@ -1,0 +1,9 @@
+.vs/
+x64/
+*.user
+*.filters
+*.vcxproj
+*.sln
+
+main.c
+*.slnx

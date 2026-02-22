@@ -1,194 +1,214 @@
-🌱 Sugarcanes Optimization Problem
-
-📌 Overview
 
 
-
-This project implements an optimization algorithm to determine the best placement of water sources in a rectangular sugarcane field.
+\# 🌱 Sugarcanes Optimization
 
 
 
-The objective is:
-
-
-
-Maximize the number of humid blocks
-
-
-
-Among equivalent solutions, minimize the number of water sources
-
-
-
-The problem is solved using a branch-and-bound backtracking approach with incremental state updates and pruning heuristics.
-
-
-
-🌾 Problem Description
+\## 📖 The Problem
 
 
 
 The field is divided into equal rectangular blocks.
 
-Each block can be in exactly one of the following states:
+
+
+Each block can be in \*\*exactly one\*\* of the following states:
 
 
 
-Value	State	Description
+| State | Symbol | Description |
 
-0	dry	Not adjacent to any water source
+| :---- | :----: | :---------- |
 
-1	water	Contains a water source
+| \*\*Water\*\* | 💧 | The block contains a water source. |
 
-2	humid	Adjacent (up/down/left/right) to a water source
+| \*\*Humid\*\* | 🌱 | The block is adjacent (up/down/left/right) to a water block. |
 
-
-
-⚠️ Diagonal adjacency does NOT count.
+| \*\*Dry\*\* | 🟫 | The block is not adjacent to any water source. |
 
 
 
-🎯 Optimization Goal
+> ⚠️ Diagonal adjacency does \*\*not\*\* count.
 
 
 
-Given the field dimensions:
 
 
+\## 🎯 Optimization Goal
+
+
+
+Given the function:
+
+
+
+```c
 
 void sugarcanes(const int length, const int width);
 
+```
 
 
-The algorithm finds the configuration of water sources that:
 
+The algorithm computes the configuration that:
 
 
-Maximizes humid blocks
 
+1\. Maximizes the number of \*\*humid\*\* blocks  
 
+2\. Minimizes the number of \*\*water\*\* blocks (if tied)
 
-Minimizes water blocks (secondary objective)
 
 
 
-📐 Example
 
-3×3 Grid
+\## 🧩 Example
 
 
 
-Initial empty field:
+\### Initial 3×3 Grid
 
 
 
-. . .
+```
 
-. . .
+🟫 🟫 🟫
 
-. . .
+🟫 🟫 🟫
 
+🟫 🟫 🟫
 
+```
 
-Placing a water source in the center:
 
 
+\### After Placing One Water Source (Center)
 
-. H .
 
-H W H
 
-. H .
+```
 
+🟫 🌱 🟫
 
+🌱 💧 🌱
 
-Legend:
+🟫 🌱 🟫
 
+```
 
 
-W = water
 
+Only \*\*orthogonal neighbors\*\* become humid.
 
 
-H = humid
 
 
 
-. = dry
+\## 🧠 Algorithm Strategy
 
 
 
-Only orthogonal neighbors become humid.
+\### 1️⃣ Backtracking
 
 
 
-🧠 Algorithm Strategy
+Each cell has two possible decisions:
 
-1️⃣ Backtracking (Full Exploration)
 
 
+\- Place water
 
-Each cell has two possibilities:
+\- Do not place water
 
 
 
-Place water
+This generates a decision tree of depth:
 
 
 
-Do not place water
+```
 
+rows × cols
 
+```
 
-This generates a binary decision tree of depth rows × cols.
 
 
 
-2️⃣ Incremental State Updates
 
+\### 2️⃣ Incremental Updates (O(1) per step)
 
 
-Instead of recomputing the entire grid at each step:
 
+Instead of recomputing the entire grid at every recursion:
 
 
-Only the modified cell and its 4 neighbors are updated.
 
+\- Only the selected cell and its 4 neighbors are updated
 
+\- The humid count is updated incrementally
 
-State restoration (UNDO) restores exactly 5 cells.
+\- An explicit \*\*UNDO\*\* restores exactly 5 cells
 
 
 
-Humid count is updated incrementally.
+This keeps each recursive step in:
 
 
 
-This makes each recursive step O(1).
+```
 
+O(1)
 
+```
 
-3️⃣ Branch \& Bound Pruning
 
 
 
-To reduce the exponential search space:
 
+\### 3️⃣ Branch \& Bound Pruning
 
 
-The algorithm computes an upper bound on the maximum possible humid blocks from the current partial solution.
 
+To reduce the exponential search space, the algorithm computes an upper bound:
 
 
-If that bound is worse than the best solution found so far, the branch is pruned.
 
+```
 
+max\_possible\_humid
 
-This significantly improves performance in practice.
+```
 
 
 
-⚙️ Project Structure
+If:
+
+
+
+```
+
+max\_possible\_humid < bestHumid
+
+```
+
+
+
+the branch is pruned immediately.
+
+
+
+This significantly improves practical performance.
+
+
+
+
+
+\## 🏗 Project Structure
+
+
+
+```
 
 .
 
@@ -198,67 +218,39 @@ This significantly improves performance in practice.
 
 └── README.md
 
-sugarcanes.h
+```
 
 
 
-Defines:
+\### sugarcanes.h
 
 
 
-Grid states (dry, water, humid)
+\- Grid state definitions (`dry`, `water`, `humid`)
+
+\- `Matrix` structure
+
+\- Public function declaration
 
 
 
-Matrix structure
+\### sugarcanes.c
 
 
 
-Public function sugarcanes()
+\- Grid utilities
+
+\- Incremental recomputation logic
+
+\- Recursive solver with pruning
+
+\- Output formatting
 
 
 
-sugarcanes.c
 
 
-
-Implements:
-
-
-
-Grid handling utilities
-
-
-
-Incremental recomputation logic
-
-
-
-Recursive solver with pruning
-
-
-
-Output formatting
-
-
-
-🚀 Compilation
-
-
-
-Using GCC:
-
-
-
-gcc -O2 sugarcanes.c -o sugarcanes
-
-
-
-Then call sugarcanes(length, width) from your main().
-
-
-
-📊 Complexity
+\## 📊 Complexity
 
 
 
@@ -266,85 +258,35 @@ Worst-case complexity:
 
 
 
-O(2^(rows \* cols))
+```
+
+O(2^(rows × cols))
+
+```
 
 
 
-However, pruning and bounding reduce the practical runtime significantly for medium-sized grids.
+However, pruning and bounding reduce runtime significantly for medium-sized grids.
 
 
 
-🧩 Key Design Choices
+
+
+\## 🧠 Key Design Choices
 
 
 
-Incremental update instead of global recomputation
+\- ✔ Incremental update instead of full recomputation  
+
+\- ✔ Explicit UNDO for safe backtracking  
+
+\- ✔ Upper-bound pruning heuristic  
+
+\- ✔ Memory-efficient 1D array representation  
 
 
 
-Explicit UNDO for safe backtracking
 
 
-
-Bounding heuristic for pruning
-
-
-
-Memory-efficient 1D array representation
-
-
-
-🔮 Possible Extensions
-
-
-
-ILP / MaxSAT formulation
-
-
-
-Parallel search
-
-
-
-Dynamic programming optimization
-
-
-
-Visualization interface
-
-
-
-Theoretical pattern analysis of optimal layouts
-
-
-
-📚 Educational Value
-
-
-
-This project is a compact example of:
-
-
-
-Combinatorial optimization
-
-
-
-Branch \& Bound techniques
-
-
-
-State-space search
-
-
-
-Efficient backtracking
-
-
-
-Pruning strategies
-
-
-
-It demonstrates how careful algorithm design dramatically improves performance compared to naive brute-force exploration.
+It shows how careful algorithm design dramatically improves performance compared to naive brute-force exploration.
 
