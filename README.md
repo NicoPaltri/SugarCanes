@@ -106,6 +106,23 @@ This significantly improves practical performance.
 
 ---
 
+## 📈 Data Analysis & Efficiency 
+### The Theoretical Upper Bound: 80% 
+A key mathematical insight of this problem is the maximum efficiency limit. Each water source occupies **1 block** and can hydrate at most **4 adjacent blocks**. In an ideal, infinite grid (ignoring boundaries), every group of 5 blocks would consist of 1 water source and 4 humid blocks. Therefore, the **theoretical upper bound** for the fraction of cultivable blocks is: $$\frac{4}{5} = 0.8 $$
+ ### 3D Efficiency Visualization 
+ To visualize how the algorithm performs across different grid sizes, we plotted the results where: 
+ * **X-axis**: Number of Rows 
+  * **Y-axis**: Number of Columns 
+  * **Z-axis**: Efficiency ($\frac{\text{humidBlocks}}{\text{row} \times \text{col}}$) 
+   ![Sugarcanes Efficiency Plot](Images/SugarCanePlot.png) 
+  
+  **The Data Narrative:** The plot uses a color gradient to tell a story of optimization: 
+  * **The Edge Effect (Small Grids):** In smaller grids, "cold" colors represent lower efficiency. This is because boundaries restrict water sources from reaching their full 4-block potential. For example, a $1 \times 1$ grid has $0\%$ efficiency, while a $2 \times 2$ grid reaches $50\%$ ($Z = 0.5$). 
+  *  **Asymptotic Growth (Large Grids):** As dimensions increase, "warmer" colors appear. The relative impact of the edges diminishes, and the surface trends toward the $0.8$ asymptote. On a $10 \times 10$ grid, the algorithm achieves an efficiency of $76\%$.
+   
+
+---
+
 ## 🏗 Project Structure
 
 ```
