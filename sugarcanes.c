@@ -138,25 +138,21 @@ static void solve(
 void sugarcanes(const int length, const int width) { 
     if (length <= 0 || width <= 0) return;
 
+    struct Matrix* matrix = NULL;
+    int* bestSolution = NULL;
+
     const int dimension = length * width;
 
-    struct Matrix* matrix = (struct Matrix*)malloc(sizeof(struct Matrix));
-    if (!matrix) return;
+    matrix = malloc(sizeof(struct Matrix));
+    if (!matrix) goto cleanup;
 
     matrix->rows = length;
     matrix->cols = width;
-    matrix->values = (int*)calloc((size_t)dimension, sizeof(int));
-    if (!matrix->values) {
-        free(matrix);
-        return;
-    }
+    matrix->values = calloc((size_t)dimension, sizeof(int));
+    if (!matrix->values) goto cleanup;
 
-    int* bestSolution = (int*)calloc((size_t)dimension, sizeof(int));
-    if (!bestSolution) {
-        free(matrix->values);
-        free(matrix);
-        return;
-    }
+    bestSolution = calloc((size_t)dimension, sizeof(int));
+    if (!bestSolution) goto cleanup;
 
     int bestHumid = 0;
     int bestWater = dimension;
@@ -167,7 +163,10 @@ void sugarcanes(const int length, const int width) {
 
     printMatrix(matrix, bestHumid, bestWater);
 
+cleanup:
     free(bestSolution);
-    free(matrix->values);
-    free(matrix);
+    if (matrix) {
+        free(matrix->values);
+        free(matrix);
+    }
 }
