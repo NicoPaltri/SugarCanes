@@ -61,7 +61,7 @@ static void solve(
     int pos,
     int humidCount,
     int waterCount,
-    int lockedDryCount, 
+    int lockedDryCount,
     int* bestValues,
     int* bestHumid,
     int* bestWater
@@ -71,7 +71,7 @@ static void solve(
     // Calcolo dei blocchi aridi liberi (potenzialmente convertibili)
     int remainingDry = dim - waterCount - lockedDryCount - humidCount;
 
-    //almeno 1/5 dei blocchi aridi rimanenti dovrà essere sacrificato come acqua
+    //almeno 1/5 dei blocchi aridi rimanenti dovrï¿½ essere sacrificato come acqua
     int max_possible_humid = dim - waterCount - lockedDryCount - (remainingDry / 5);
 
     if (max_possible_humid < *bestHumid) return;
@@ -135,7 +135,7 @@ static void solve(
     }
 }
 
-void sugarcanes(const int length, const int width) { 
+void sugarcanes(const int length, const int width) {
     if (length <= 0 || width <= 0) return;
 
     struct Matrix* matrix = NULL;

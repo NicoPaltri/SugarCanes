@@ -1,10 +1,12 @@
-.vs/
-x64/
+*.vs/
+*x64/
 *.user
 *.filters
-*.vcxproj
+*.vcxproj*
 *.sln
+*.slnx
+*SugarCan.*
 
 main.c
-*.slnx
+
 
