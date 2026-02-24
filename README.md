@@ -181,7 +181,7 @@ $$
 \frac{\text{humidBlocks}}{rows \times cols}
 $$
 
-![Sugarcanes Efficiency Plot](images/SugarCanePlot.png)
+![Sugarcanes Efficiency Plot](Images/SugarCanePlot.png)
 
 
 ### The Data Narrative
