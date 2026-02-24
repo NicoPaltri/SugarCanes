@@ -1,3 +1,4 @@
+
 # 🌱 Sugarcanes Optimization
 
 ## 📖 The Problem
@@ -12,7 +13,6 @@ The field is divided into equal blocks. Each block can be in **exactly one** of 
 
 > ⚠️ Diagonal adjacency does **not** count.
 
----
 
 ## 🧩 Example
 
@@ -32,7 +32,6 @@ The field is divided into equal blocks. Each block can be in **exactly one** of 
 🟫 🌱 🟫
 ```
 
----
 
 ## 🎯 Optimization Goal
 
@@ -41,7 +40,6 @@ The algorithm computes the configuration that:
 1. Maximizes the number of **humid** blocks  
 2. Minimizes the number of **water** blocks (if tied)
 
----
 
 ## C Strategy
 
@@ -64,7 +62,6 @@ This generates a decision tree of depth:
 rows × cols
 ```
 
----
 
 ### 2️⃣ Incremental Updates (O(1) per step)
 
@@ -80,7 +77,6 @@ This keeps each recursive step in:
 O(1)
 ```
 
----
 
 ### 3️⃣ Branch & Bound Pruning
 
@@ -100,7 +96,6 @@ the branch is pruned immediately.
 
 This significantly improves practical performance.
 
----
 
 ### 📊 Complexity
 
@@ -112,7 +107,6 @@ O(2^(rows × cols))
 
 However, pruning and bounding reduce runtime significantly for medium-sized grids.
 
----
 
 ### 🧠 Key Design Choices
 
@@ -121,26 +115,23 @@ However, pruning and bounding reduce runtime significantly for medium-sized grid
 - Upper-bound pruning heuristic  
 - Memory-efficient 1D array representation  
 
----
 
 ## Python Strategy
 
 We want to maximize the objective function:
 
-$$
-\max Z = \text{weight}_{humid} \cdot 
-\sum_{r=0}^{R-1} \sum_{c=0}^{C-1} h_{r,c}
--
+$$ \max Z = \text{weight}_{humid} \cdot 
+\sum_{r=0}^{R-1} \sum_{c=0}^{C-1} h_{r,c}-
 \sum_{r=0}^{R-1} \sum_{c=0}^{C-1} w_{r,c}
 $$
 
-Where:
+**Where:**
 
 - $h_{r,c} = 1$ if block $(r,c)$ is **humid**, $0$ otherwise  
 - $w_{r,c} = 1$ if block $(r,c)$ is **water**, $0$ otherwise  
 - $\text{weight}_{humid} = (rows \cdot cols) + 1$ to enforce lexicographic optimization  
 
-### Constraints
+ **Constraints:**
 
 $$
 h_{r,c} + w_{r,c} \le 1
@@ -156,7 +147,6 @@ $$
 
 where $\mathcal{N}(r,c)$ denotes the set of orthogonal neighbours of block $(r,c)$.
 
----
 
 ## 📈 Data Analysis & Efficiency
 
@@ -177,7 +167,6 @@ $$
 \frac{4}{5} = 0.8
 $$
 
----
 
 ### 3D Efficiency Visualization
 
@@ -194,7 +183,6 @@ $$
 
 ![Sugarcanes Efficiency Plot](images/SugarCanePlot.png)
 
----
 
 ### The Data Narrative
 
@@ -217,7 +205,6 @@ $$
 
 approaching the theoretical limit.
 
----
 
 ## 🏗 Project Structure
 
@@ -232,7 +219,6 @@ approaching the theoretical limit.
 └── README.md
 ```
 
----
 
 ## Conclusion
 
